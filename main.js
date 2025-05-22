@@ -11,31 +11,31 @@ let shapeMap = {};
 
 const azShapes = {
   A: 'Sphere',
-  B: 'WaveX',
-  C: 'WaveZ',
-  D: 'LetterLine',
-  E: 'Helix',
-  F: 'BridgeArc',
-  G: 'UShape',
-  H: 'GridCross',
-  I: 'XShape',
-  J: 'TShape',
-  K: 'YBranch',
-  L: 'WaveY',
-  M: 'Staircase',
-  N: 'SnakeZig',
-  O: 'CubeGrid',
-  P: 'Star',
+  B: 'CubeGrid',
+  C: 'PyramidStack',
+  D: 'Spiral',
+  E: 'TorusRing',
+  F: 'WaveX',
+  G: 'WaveY',
+  H: 'WaveZ',
+  I: 'CylinderWall',
+  J: 'Helix',
+  K: 'RandomCloud',
+  L: 'LetterLine',
+  M: 'ZigzagWall',
+  N: 'VShape',
+  O: 'UShape',
+  P: 'TShape',
   Q: 'LShape',
-  R: 'RandomCloud',
-  S: 'ZigzagWall',
-  T: 'FlatRing',
-  U: 'TorusRing',
-  V: 'ConeSpiral',
-  W: 'VShape',
-  X: 'Spiral',
-  Y: 'CylinderWall',
-  Z: 'PyramidStack'
+  R: 'Staircase',
+  S: 'GridCross',
+  T: 'XShape',
+  U: 'YBranch',
+  V: 'Star',
+  W: 'ConeSpiral',
+  X: 'FlatRing',
+  Y: 'BridgeArc',
+  Z: 'SnakeZig'
 };
 
 
@@ -126,26 +126,31 @@ function generateShapePosition(i, shape) {
   const s = azShapes[shape];
   switch (s) {
     case 'Sphere': return goldenSphere(i, numBoids);
-    case 'CubeGrid': return new THREE.Vector3((i % 10) * 6 - 30, (Math.floor(i / 10) % 10) * 6 - 30, Math.floor(i / 100) * 6 - 30);
-    case 'PyramidStack': return new THREE.Vector3((i % 10 - 5) * 6, (Math.floor(i / 10) - 7) * 6, -Math.abs(i % 10 - 5) * 3);
-    case 'Spiral': return new THREE.Vector3(i * 0.3 * Math.cos(i * 0.1), i * 0.3 * Math.sin(i * 0.1), i * 0.1 % 60 - 30);
-    case 'TorusRing': return new THREE.Vector3(Math.cos(i * 0.05) * 40, Math.sin(i * 0.05) * 40, Math.sin(i * 0.1) * 10);
+    case 'CubeGrid': return new THREE.Vector3((i % 10) * 6 - 30, Math.floor(i / 10) * 6 - 30, (i % 5) * 6 - 15);
+    case 'PyramidStack': return new THREE.Vector3((i % 10 - 5) * 5, Math.floor(i / 10) * 5, -Math.abs(i % 10 - 5) * 2);
+    case 'Spiral': return new THREE.Vector3(i * 0.2 * Math.cos(i * 0.1), i * 0.2 * Math.sin(i * 0.1), i * 0.1 % 60 - 30);
+    case 'TorusRing': return new THREE.Vector3(Math.cos(i * 0.05) * 30, Math.sin(i * 0.05) * 30, Math.sin(i * 0.1) * 5);
     case 'WaveX': return new THREE.Vector3(i % 150 - 75, Math.sin(i * 0.1) * 30, 0);
     case 'WaveY': return new THREE.Vector3(Math.sin(i * 0.1) * 30, i % 150 - 75, 0);
     case 'WaveZ': return new THREE.Vector3(0, Math.sin(i * 0.1) * 30, i % 150 - 75);
-    case 'CirclePlane': return new THREE.Vector3(Math.cos(i) * 60, Math.sin(i) * 60, 0);
-    case 'CylinderWall': return new THREE.Vector3(Math.cos(i * 0.1) * 40, (i % 20 - 10) * 3, Math.sin(i * 0.1) * 40);
-    case 'Helix': return new THREE.Vector3(Math.cos(i * 0.1) * 30, Math.sin(i * 0.1) * 30, (i % 100 - 50) * 0.6);
-    case 'RandomCloud': return new THREE.Vector3((Math.random() - 0.5) * 80, (Math.random() - 0.5) * 80, (Math.random() - 0.5) * 80);
-    case 'Star': return new THREE.Vector3((i % 2 == 0 ? 1.5 : 1) * Math.cos(i * 0.1) * 40, (i % 2 == 0 ? 1.5 : 1) * Math.sin(i * 0.1) * 40, 0);
+    case 'CylinderWall': return new THREE.Vector3(Math.cos(i * 0.1) * 30, (i % 40 - 20) * 1.5, Math.sin(i * 0.1) * 30);
+    case 'Helix': return new THREE.Vector3(Math.cos(i * 0.1) * 25, Math.sin(i * 0.1) * 25, (i % 100 - 50) * 0.5);
+    case 'RandomCloud': return new THREE.Vector3((Math.random() - 0.5) * 100, (Math.random() - 0.5) * 100, (Math.random() - 0.5) * 100);
+    case 'LetterLine': return new THREE.Vector3(i * 0.6 - 40, Math.sin(i * 0.2) * 20, 0);
+    case 'ZigzagWall': return new THREE.Vector3((i % 20 - 10) * 3, ((i % 2) * 2 - 1) * (i % 20), 0);
+    case 'VShape': return new THREE.Vector3(i % 75 - 37, Math.abs(i % 75 - 37), 0);
+    case 'UShape': return new THREE.Vector3(Math.cos(i * 0.1) * 30, Math.abs(Math.sin(i * 0.1) * 30), 0);
+    case 'TShape': return new THREE.Vector3(i < 300 ? i % 60 - 30 : 0, i < 300 ? 0 : i % 60 - 30, 0);
+    case 'LShape': return new THREE.Vector3(i < 300 ? -30 : i % 60 - 30, i < 300 ? i % 60 - 30 : -30, 0);
+    case 'Staircase': return new THREE.Vector3((i % 30) * 2, (i % 30) * 2, 0);
+    case 'GridCross': return new THREE.Vector3((i % 10 - 5) * 6, (Math.floor(i / 10) - 7) * 6, 0);
+    case 'XShape': return new THREE.Vector3((i % 30 - 15) * 2, (i % 2 == 0 ? 1 : -1) * (i % 30 - 15) * 2, 0);
+    case 'YBranch': return new THREE.Vector3((i % 2) * 20 - 10, i % 60 - 30, (i % 3 - 1) * 20);
+    case 'Star': return new THREE.Vector3((i % 2 == 0 ? 1.5 : 1) * Math.cos(i * 0.1) * 25, (i % 2 == 0 ? 1.5 : 1) * Math.sin(i * 0.1) * 25, 0);
+    case 'ConeSpiral': return new THREE.Vector3(Math.cos(i * 0.1) * i * 0.05, Math.sin(i * 0.1) * i * 0.05, i * 0.1);
+    case 'FlatRing': return new THREE.Vector3(Math.cos(i * 0.05) * 40, 0, Math.sin(i * 0.05) * 40);
     case 'BridgeArc': return new THREE.Vector3((i % 50) - 25, Math.sin(i * 0.15) * 20, 0);
     case 'SnakeZig': return new THREE.Vector3((i % 2 === 0 ? 1 : -1) * (i % 20), (i % 100 - 50), Math.sin(i * 0.2) * 15);
-    case 'TwinRing': return new THREE.Vector3(Math.cos(i * 0.1) * 30, Math.sin(i * 0.1) * 30, (i % 2 === 0 ? 20 : -20));
-    case 'BoxStairs': return new THREE.Vector3((i % 20) * 3 - 30, Math.floor(i / 20) * 3, 0);
-    case 'FanSpread': return new THREE.Vector3(i * 0.2, Math.tan(i * 0.05) * 20, 0);
-    case 'OffsetGrid': return new THREE.Vector3((i % 10) * 6 - 30, (Math.floor(i / 10) % 10) * 6 - 30 + (i % 2) * 3, Math.floor(i / 100) * 6 - 30);
-    case 'TwistHelix': return new THREE.Vector3(Math.cos(i * 0.1) * 30, Math.sin(i * 0.1) * 30, Math.sin(i * 0.05) * 30);
-    case 'WallRamp': return new THREE.Vector3((i % 30) - 15, (i % 30) - 15, 0);
     default: return goldenSphere(i, numBoids);
   }
 }
