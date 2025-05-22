@@ -6,14 +6,20 @@ let particles = [], dragging = false, selected = null, raycaster, mouse;
 const numParticles = 2250;
 let activeShape = 'A';
 let distortMode = false;
+let currentColor;
 
 const shapeMap = {
   A:'Sphere',B:'Torus',C:'Spiral',D:'WaveX',E:'WaveY',F:'WaveZ',G:'Grid',H:'Vortex',
   I:'Star',J:'Helix',K:'Drop',L:'Cross',M:'Arc',N:'Ring',O:'Bloom',P:'Shard',
   Q:'Float',R:'Twist',S:'Wrap',T:'Stack',U:'Fan',V:'Pipe',W:'Shell',X:'Lattice',Y:'Fractal',Z:'Burst'
 };
-const pulseShapes = ['A','C','E','G','I','K','M','O','Q','S','U','W','Y'];
-const smoothShapes = ['B','D','F','H','J','L','N','P','R','T','V','X','Z'];
+
+const colorList = [
+  0xff5733, 0xffbd33, 0xdfff33, 0x75ff33, 0x33ff57, 0x33ffbd, 0x33dfff, 0x3375ff, 0x5733ff, 0xbd33ff,
+  0xff33df, 0xff3375, 0xff3333, 0x33ffaa, 0x3388ff, 0x8833ff, 0xff8833, 0x33ff88, 0xaa33ff, 0x33aaff,
+  0x44ff44, 0xff4444, 0x44ffff, 0xffff44, 0x8877ff, 0x9988aa, 0xccff88, 0x88ccff, 0xdd99ff, 0xff99dd,
+  0xffaa33, 0xaaff33, 0x33ffaa, 0x33aaff, 0xaa33ff, 0xff33aa, 0x33ff33, 0x4444ff, 0xff4444, 0xffdd33
+];
 
 init();
 animate();
@@ -32,17 +38,17 @@ function init() {
   mouse = new THREE.Vector2();
 
   const geometry = new THREE.SphereGeometry(0.3, 8, 8);
-  const color = new THREE.Color(0x33ffaa);
-  const material = new THREE.MeshStandardMaterial({
-    color,
-    emissive: color,
-    emissiveIntensity: 1.2,
-    transparent: true,
-    opacity: 0.85
-  });
+  currentColor = new THREE.Color(colorList[Math.floor(Math.random() * colorList.length)]);
 
   for (let i = 0; i < numParticles; i++) {
-    const mesh = new THREE.Mesh(geometry, material.clone());
+    const material = new THREE.MeshStandardMaterial({
+      color: currentColor,
+      emissive: currentColor,
+      emissiveIntensity: 1.2,
+      transparent: true,
+      opacity: 0.85
+    });
+    const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
     particles.push(mesh);
   }
@@ -54,14 +60,14 @@ function init() {
 
   document.getElementById('distortModeBtn').addEventListener('click', () => {
     distortMode = !distortMode;
-    const btn = document.getElementById('distortModeBtn');
-    btn.classList.toggle('active', distortMode);
+    document.getElementById('distortModeBtn').classList.toggle('active', distortMode);
   });
 
   window.addEventListener('pointerdown', onPointerDown);
   window.addEventListener('pointermove', onPointerMove);
   window.addEventListener('pointerup', () => { dragging = false; selected = null; });
   window.addEventListener('click', onClick);
+  window.addEventListener('keydown', onKeyDown);
 }
 
 function onPointerDown(e) {
@@ -85,14 +91,34 @@ function onPointerMove(e) {
 
 function onClick() {
   if (distortMode) return;
-  const keys = Object.keys(shapeMap).filter(k => k !== activeShape);
-  const next = keys[Math.floor(Math.random() * keys.length)];
-  activeShape = next;
+  changeToRandomShape();
+}
+
+function onKeyDown(e) {
+  const key = e.key.toUpperCase();
+  if (shapeMap[key]) {
+    activeShape = key;
+    changeColor();
+  }
 }
 
 function setMouse(event) {
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+}
+
+function changeColor() {
+  currentColor = new THREE.Color(colorList[Math.floor(Math.random() * colorList.length)]);
+  particles.forEach(p => {
+    p.material.color.set(currentColor);
+    p.material.emissive.set(currentColor);
+  });
+}
+
+function changeToRandomShape() {
+  const keys = Object.keys(shapeMap).filter(k => k !== activeShape);
+  activeShape = keys[Math.floor(Math.random() * keys.length)];
+  changeColor();
 }
 
 function getShapePosition(i, shape, time) {
@@ -101,10 +127,8 @@ function getShapePosition(i, shape, time) {
   const theta = Math.PI * (1 + Math.sqrt(5)) * (i + 0.5);
   let offset = 1.0;
 
-  if (pulseShapes.includes(activeShape)) {
-    offset = 1.0 + 0.1 * Math.sin(time * 3 + i * 0.01);
-  } else if (smoothShapes.includes(activeShape)) {
-    offset = 1.0 + 0.05 * Math.sin(i * 0.3 + time * 2);
+  if (distortMode) {
+    offset = 1.0 + 0.2 * Math.sin(time * 3 + i * 0.01);  // 心臓エフェクト
   }
 
   switch (shape) {
