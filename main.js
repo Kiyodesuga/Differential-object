@@ -4,15 +4,15 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 let scene, camera, renderer, clock;
 let particles = [], dragging = false, selected = null, raycaster, mouse;
 const numParticles = 2250;
-let activeShape = 'A';  // 初期状態：球体
+let activeShape = 'A';
 let distortMode = false;
 let currentColor;
 
 const shapeMap = {
-  A:'Sphere',B:'Torus',C:'Spiral',D:'WaveX',E:'WaveY',F:'GridShell',G:'Grid',H:'SpiralShell',
-  I:'Star',J:'TwistTower',K:'Drop',L:'ArcLine',M:'Bridge',N:'RingGrid',O:'BloomFan',P:'ShardField',
-  Q:'FloatSwirl',R:'FlowerRing',S:'WrapHelix',T:'StackBlock',U:'FanWeb',V:'PipeArray',
-  W:'ShellSpiral',X:'LatticeFlow',Y:'FractalSphere',Z:'BurstSpine'
+  A:'Sphere',B:'Spiral',C:'Torus',D:'Grid',E:'Helix',F:'StarBurst',G:'ArcLine',H:'DropTail',
+  I:'CrystalCluster',J:'TwistTower',K:'ShellSpiral',L:'CrossPlane',M:'BridgeArch',N:'RingStack',
+  O:'FlowerBloom',P:'VortexCore',Q:'RibbonFlow',R:'FlameRise',S:'LatticeNet',T:'FanSpread',
+  U:'SpikeBall',V:'WarpFold',W:'DoubleHelix',X:'FractalTree',Y:'HeartBeatOrb',Z:'FlameWhirl'
 };
 
 const colorList = [
@@ -122,24 +122,14 @@ function getShapePosition(i, shape, time) {
   const phi = Math.acos(1 - 2 * (i + 0.5) / numParticles);
   const theta = Math.PI * (1 + Math.sqrt(5)) * (i + 0.5);
   let offset = 1.0;
-
   if (distortMode) {
     offset = 1.0 + 0.2 * Math.sin(time * 3 + i * 0.01);
   }
-
-  switch (shape) {
-    case 'Torus': return new THREE.Vector3(Math.cos(theta) * 40, Math.sin(theta) * 40, Math.sin(phi) * 20);
-    case 'Spiral': return new THREE.Vector3(i * 0.1 * Math.cos(i * 0.05), i * 0.1 * Math.sin(i * 0.05), i * 0.02 - 20);
-    case 'WaveX': return new THREE.Vector3(i % 75 - 37, Math.sin(i * 0.1 + time) * 20, 0);
-    case 'WaveY': return new THREE.Vector3(Math.sin(i * 0.1 + time) * 20, i % 75 - 37, 0);
-    case 'Grid': return new THREE.Vector3((i % 15 - 7) * 6, Math.floor(i / 15 % 10) * 6 - 30, Math.floor(i / 150) * 6 - 30);
-    default:
-      return new THREE.Vector3(
-        radius * Math.sin(phi) * Math.cos(theta) * offset,
-        radius * Math.sin(phi) * Math.sin(theta) * offset,
-        radius * Math.cos(phi) * offset
-      );
-  }
+  return new THREE.Vector3(
+    radius * Math.sin(phi) * Math.cos(theta) * offset,
+    radius * Math.sin(phi) * Math.sin(theta) * offset,
+    radius * Math.cos(phi) * offset
+  );
 }
 
 function updateStructure(time) {
