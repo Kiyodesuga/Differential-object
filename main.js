@@ -61,6 +61,7 @@ function init() {
   window.addEventListener('pointerdown', onPointerDown);
   window.addEventListener('pointermove', onPointerMove);
   window.addEventListener('pointerup', () => { dragging = false; selected = null; });
+  window.addEventListener('click', onClick);
 }
 
 function onPointerDown(e) {
@@ -80,6 +81,13 @@ function onPointerMove(e) {
   raycaster.setFromCamera(mouse, camera);
   const point = raycaster.ray.origin.clone().add(raycaster.ray.direction.clone().multiplyScalar(30));
   selected.position.lerp(point, 0.3);
+}
+
+function onClick() {
+  if (distortMode) return;
+  const keys = Object.keys(shapeMap).filter(k => k !== activeShape);
+  const next = keys[Math.floor(Math.random() * keys.length)];
+  activeShape = next;
 }
 
 function setMouse(event) {
