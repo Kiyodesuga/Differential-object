@@ -72,6 +72,17 @@ function init() {
     }
   });
 
+  
+  window.addEventListener('click', () => {
+    const keys = Object.keys(shapeMap).filter(k => k !== activeShape);
+    activeShape = keys[Math.floor(Math.random() * keys.length)];
+    currentColor = colors[Math.floor(Math.random() * colors.length)];
+    particles.forEach(p => {
+      p.material.color.set(currentColor);
+      p.material.emissive.set(currentColor);
+    });
+  });
+
   window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
