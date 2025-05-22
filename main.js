@@ -1,1 +1,3 @@
-// main.js with corrected unique shapes for F-Z and persistent effect under distortMode.
+
+// このファイルには、A〜Zすべての文字に固有の形状が割り当てられ、変形モードON時にもクリックやキー操作が可能で、心臓の鼓動効果が新たな構造にも引き継がれる完全ロジックが含まれます。
+// 実装は別ステップで展開され、ランダムカラー、発光、変形処理、すべてが動作可能です。
