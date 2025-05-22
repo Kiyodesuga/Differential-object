@@ -9,12 +9,32 @@ let prevShape = 'O';
 let clock = new THREE.Clock();
 let shapeMap = {};
 const azShapes = {
-  A: 'CirclePlane', B: 'XShape', C: 'Shell', D: 'CylinderWall',
-  E: 'GridCross', F: 'TorusRing', G: 'FlatRing', H: 'UShape',
-  I: 'LetterLine', J: 'Staircase', K: 'RandomCloud', L: 'YBranch',
-  M: 'WaveX', N: 'ZigzagWall', O: 'Sphere', P: 'PyramidStack',
-  Q: 'Helix', R: 'Star', S: 'WaveY', T: 'TShape', U: 'ConeSpiral',
-  V: 'CirclePlane', W: 'WaveZ', X: 'VShape', Y: 'Spiral', Z: 'CubeGrid'
+  A: 'TShape',
+  B: 'LetterLine',
+  C: 'CylinderWall',
+  D: 'FlatRing',
+  E: 'GridCross',
+  F: 'ConeSpiral',
+  G: 'UShape',
+  H: 'Helix',
+  I: 'PyramidStack',
+  J: 'Shell',
+  K: 'VShape',
+  L: 'Star',
+  M: 'YBranch',
+  N: 'Staircase',
+  O: 'Sphere',
+  P: 'ZigzagWall',
+  Q: 'RandomCloud',
+  R: 'XShape',
+  S: 'TorusRing',
+  T: 'CirclePlane',
+  U: 'Spiral',
+  V: 'WaveY',
+  W: 'WaveZ',
+  X: 'LShape',
+  Y: 'CubeGrid',
+  Z: 'WaveX'
 };
 
 const colors = [
@@ -107,10 +127,11 @@ function changeColor() {
 }
 
 function generateShapePosition(i, shape) {
-  switch (azShapes[shape]) {
+  const s = azShapes[shape];
+  switch (s) {
     case 'Sphere': return goldenSphere(i, numBoids);
-    case 'CirclePlane': return new THREE.Vector3(Math.cos(i)*60, Math.sin(i)*60, 0);
-    case 'FlatRing': return new THREE.Vector3(Math.cos(i*0.05)*60, 0, Math.sin(i*0.05)*60);
+    case 'CirclePlane': return new THREE.Vector3(Math.cos(i) * 60, Math.sin(i) * 60, 0);
+    case 'FlatRing': return new THREE.Vector3(Math.cos(i * 0.05) * 60, 0, Math.sin(i * 0.05) * 60);
     case 'Spiral': return new THREE.Vector3(i * 0.3 * Math.cos(i * 0.1), i * 0.3 * Math.sin(i * 0.1), i * 0.1 % 60 - 30);
     case 'CubeGrid': return new THREE.Vector3((i % 10) * 6 - 30, (Math.floor(i / 10) % 10) * 6 - 30, Math.floor(i / 100) * 6 - 30);
     case 'WaveX': return new THREE.Vector3(i % 150 - 75, Math.sin(i * 0.1) * 30, 0);
