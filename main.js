@@ -6,9 +6,14 @@ const numBoids = 1500;
 let activeShape = 'O';
 let prevShape = 'O';
 let clock = new THREE.Clock();
-let toggleState = false;
 let shapeMap = {};
-const colors = [0xff5733, 0xffbd33, 0xdfff33, 0x75ff33, 0x33ff57, 0x33ffbd, 0x33dfff, 0x3375ff, 0x5733ff, 0xbd33ff, 0xff33df, 0xff3375, 0xff3333, 0x33ffaa, 0x3388ff, 0x8833ff, 0xff8833, 0x33ff88, 0xaa33ff, 0x33aaff];
+const colors = [
+  0xff5733, 0xffbd33, 0xdfff33, 0x75ff33, 0x33ff57,
+  0x33ffbd, 0x33dfff, 0x3375ff, 0x5733ff, 0xbd33ff,
+  0xff33df, 0xff3375, 0xff3333, 0x33ffaa, 0x3388ff,
+  0x8833ff, 0xff8833, 0x33ff88, 0xaa33ff, 0x33aaff
+];
+let currentColor = colors[Math.floor(Math.random() * colors.length)];
 
 init();
 animate();
@@ -30,8 +35,8 @@ function init() {
   for (let i = 0; i < numBoids; i++) {
     const geo = new THREE.SphereGeometry(0.4, 8, 8);
     const mat = new THREE.MeshStandardMaterial({
-      color: colors[i % colors.length],
-      emissive: colors[i % colors.length],
+      color: currentColor,
+      emissive: currentColor,
       emissiveIntensity: 1.0,
       transparent: true,
       opacity: 0.75
@@ -63,25 +68,36 @@ function onResize() {
 }
 
 function onClick() {
-  if (activeShape === 'O') {
-    const keys = Object.keys(shapeMap);
+  let keys = Object.keys(shapeMap);
+  let nextShape = activeShape;
+  while (nextShape === activeShape) {
     const randKey = keys[Math.floor(Math.random() * keys.length)];
-    prevShape = 'O';
-    activeShape = randKey;
-  } else {
-    activeShape = 'O';
+    nextShape = randKey;
   }
+  prevShape = activeShape;
+  activeShape = nextShape;
+  currentColor = colors[Math.floor(Math.random() * colors.length)];
+  boids.forEach(boid => {
+    boid.material.color.set(currentColor);
+    boid.material.emissive.set(currentColor);
+  });
 }
 
 function onKeyDown(e) {
   const key = e.key.toUpperCase();
   if (key >= 'A' && key <= 'Z') {
     if (activeShape === key) {
-      activeShape = 'O';
+      let keys = Object.keys(shapeMap).filter(k => k !== activeShape);
+      const randKey = keys[Math.floor(Math.random() * keys.length)];
+      activeShape = randKey;
     } else {
-      prevShape = activeShape;
       activeShape = key;
     }
+    currentColor = colors[Math.floor(Math.random() * colors.length)];
+    boids.forEach(boid => {
+      boid.material.color.set(currentColor);
+      boid.material.emissive.set(currentColor);
+    });
   }
 }
 
@@ -127,7 +143,6 @@ function updateBoids() {
   });
 }
 
-// 初期にA〜Zの仮形状を全てmap登録
 for (let code = 65; code <= 90; code++) {
   const char = String.fromCharCode(code);
   shapeMap[char] = true;
