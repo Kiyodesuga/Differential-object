@@ -1,14 +1,32 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Boids A-Z 26 Unique Shapes</title>
+  <title>Boids Dynamic Deformable</title>
   <style>
-    body { margin: 0; overflow: hidden; background: black; }
+    body { margin: 0; overflow: hidden; background: black; font-family: sans-serif; }
     canvas { display: block; }
+    #ui {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 10;
+    }
+    #distortModeBtn {
+      background: #222;
+      color: white;
+      padding: 8px 14px;
+      border: 1px solid #666;
+      border-radius: 6px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
+  <div id="ui">
+    <button id="distortModeBtn">🔧 変形モード OFF</button>
+  </div>
   <script type="module" src="main.js"></script>
 </body>
 </html>
