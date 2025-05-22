@@ -15,7 +15,7 @@ const azShapes = {
   C: 'WaveZ',
   D: 'LetterLine',
   E: 'Helix',
-  F: 'CirclePlane',
+  F: 'BridgeArc',
   G: 'UShape',
   H: 'GridCross',
   I: 'XShape',
@@ -23,7 +23,7 @@ const azShapes = {
   K: 'YBranch',
   L: 'WaveY',
   M: 'Staircase',
-  N: 'Shell',
+  N: 'SnakeZig',
   O: 'CubeGrid',
   P: 'Star',
   Q: 'LShape',
@@ -38,6 +38,7 @@ const azShapes = {
   Z: 'PyramidStack'
 };
 
+
 const colors = [
   0xff5733, 0xffbd33, 0xdfff33, 0x75ff33, 0x33ff57,
   0x33ffbd, 0x33dfff, 0x3375ff, 0x5733ff, 0xbd33ff,
@@ -51,7 +52,7 @@ animate();
 
 function init() {
   scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
   camera.position.z = 150;
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -137,6 +138,14 @@ function generateShapePosition(i, shape) {
     case 'Helix': return new THREE.Vector3(Math.cos(i * 0.1) * 30, Math.sin(i * 0.1) * 30, (i % 100 - 50) * 0.6);
     case 'RandomCloud': return new THREE.Vector3((Math.random() - 0.5) * 80, (Math.random() - 0.5) * 80, (Math.random() - 0.5) * 80);
     case 'Star': return new THREE.Vector3((i % 2 == 0 ? 1.5 : 1) * Math.cos(i * 0.1) * 40, (i % 2 == 0 ? 1.5 : 1) * Math.sin(i * 0.1) * 40, 0);
+    case 'BridgeArc': return new THREE.Vector3((i % 50) - 25, Math.sin(i * 0.15) * 20, 0);
+    case 'SnakeZig': return new THREE.Vector3((i % 2 === 0 ? 1 : -1) * (i % 20), (i % 100 - 50), Math.sin(i * 0.2) * 15);
+    case 'TwinRing': return new THREE.Vector3(Math.cos(i * 0.1) * 30, Math.sin(i * 0.1) * 30, (i % 2 === 0 ? 20 : -20));
+    case 'BoxStairs': return new THREE.Vector3((i % 20) * 3 - 30, Math.floor(i / 20) * 3, 0);
+    case 'FanSpread': return new THREE.Vector3(i * 0.2, Math.tan(i * 0.05) * 20, 0);
+    case 'OffsetGrid': return new THREE.Vector3((i % 10) * 6 - 30, (Math.floor(i / 10) % 10) * 6 - 30 + (i % 2) * 3, Math.floor(i / 100) * 6 - 30);
+    case 'TwistHelix': return new THREE.Vector3(Math.cos(i * 0.1) * 30, Math.sin(i * 0.1) * 30, Math.sin(i * 0.05) * 30);
+    case 'WallRamp': return new THREE.Vector3((i % 30) - 15, (i % 30) - 15, 0);
     default: return goldenSphere(i, numBoids);
   }
 }
