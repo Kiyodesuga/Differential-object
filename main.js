@@ -1,3 +1,4 @@
+
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 let scene, camera, renderer;
@@ -7,6 +8,15 @@ let activeShape = 'O';
 let prevShape = 'O';
 let clock = new THREE.Clock();
 let shapeMap = {};
+const azShapes = {
+  A: 'CirclePlane', B: 'XShape', C: 'Shell', D: 'CylinderWall',
+  E: 'GridCross', F: 'TorusRing', G: 'FlatRing', H: 'UShape',
+  I: 'LetterLine', J: 'Staircase', K: 'RandomCloud', L: 'YBranch',
+  M: 'WaveX', N: 'ZigzagWall', O: 'Sphere', P: 'PyramidStack',
+  Q: 'Helix', R: 'Star', S: 'WaveY', T: 'TShape', U: 'ConeSpiral',
+  V: 'CirclePlane', W: 'WaveZ', X: 'VShape', Y: 'Spiral', Z: 'CubeGrid'
+};
+
 const colors = [
   0xff5733, 0xffbd33, 0xdfff33, 0x75ff33, 0x33ff57,
   0x33ffbd, 0x33dfff, 0x3375ff, 0x5733ff, 0xbd33ff,
@@ -20,7 +30,7 @@ animate();
 
 function init() {
   scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
   camera.position.z = 150;
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -42,16 +52,8 @@ function init() {
       opacity: 0.75
     });
     const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(
-      (Math.random() - 0.5) * 300,
-      (Math.random() - 0.5) * 300,
-      (Math.random() - 0.5) * 300
-    );
-    mesh.velocity = new THREE.Vector3(
-      (Math.random() - 0.5),
-      (Math.random() - 0.5),
-      (Math.random() - 0.5)
-    );
+    mesh.position.set((Math.random() - 0.5) * 300, (Math.random() - 0.5) * 300, (Math.random() - 0.5) * 300);
+    mesh.velocity = new THREE.Vector3((Math.random() - 0.5), (Math.random() - 0.5), (Math.random() - 0.5));
     boids.push(mesh);
     scene.add(mesh);
   }
@@ -59,6 +61,11 @@ function init() {
   window.addEventListener('resize', onResize);
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('click', onClick);
+
+  for (let code = 65; code <= 90; code++) {
+    const char = String.fromCharCode(code);
+    shapeMap[char] = true;
+  }
 }
 
 function onResize() {
@@ -71,37 +78,51 @@ function onClick() {
   let keys = Object.keys(shapeMap);
   let nextShape = activeShape;
   while (nextShape === activeShape) {
-    const randKey = keys[Math.floor(Math.random() * keys.length)];
-    nextShape = randKey;
+    nextShape = keys[Math.floor(Math.random() * keys.length)];
   }
   prevShape = activeShape;
   activeShape = nextShape;
-  currentColor = colors[Math.floor(Math.random() * colors.length)];
-  boids.forEach(boid => {
-    boid.material.color.set(currentColor);
-    boid.material.emissive.set(currentColor);
-  });
+  changeColor();
 }
 
 function onKeyDown(e) {
   const key = e.key.toUpperCase();
   if (key >= 'A' && key <= 'Z') {
     if (activeShape === key) {
-      let keys = Object.keys(shapeMap).filter(k => k !== activeShape);
-      const randKey = keys[Math.floor(Math.random() * keys.length)];
-      activeShape = randKey;
+      const keys = Object.keys(shapeMap).filter(k => k !== activeShape);
+      activeShape = keys[Math.floor(Math.random() * keys.length)];
     } else {
       activeShape = key;
     }
-    currentColor = colors[Math.floor(Math.random() * colors.length)];
-    boids.forEach(boid => {
-      boid.material.color.set(currentColor);
-      boid.material.emissive.set(currentColor);
-    });
+    changeColor();
   }
 }
 
-function goldenSpherePosition(i, n, radius = 60) {
+function changeColor() {
+  currentColor = colors[Math.floor(Math.random() * colors.length)];
+  boids.forEach(b => {
+    b.material.color.set(currentColor);
+    b.material.emissive.set(currentColor);
+  });
+}
+
+function generateShapePosition(i, shape) {
+  switch (azShapes[shape]) {
+    case 'Sphere': return goldenSphere(i, numBoids);
+    case 'CirclePlane': return new THREE.Vector3(Math.cos(i)*60, Math.sin(i)*60, 0);
+    case 'FlatRing': return new THREE.Vector3(Math.cos(i*0.05)*60, 0, Math.sin(i*0.05)*60);
+    case 'Spiral': return new THREE.Vector3(i * 0.3 * Math.cos(i * 0.1), i * 0.3 * Math.sin(i * 0.1), i * 0.1 % 60 - 30);
+    case 'CubeGrid': return new THREE.Vector3((i % 10) * 6 - 30, (Math.floor(i / 10) % 10) * 6 - 30, Math.floor(i / 100) * 6 - 30);
+    case 'WaveX': return new THREE.Vector3(i % 150 - 75, Math.sin(i * 0.1) * 30, 0);
+    case 'WaveY': return new THREE.Vector3(Math.sin(i * 0.1) * 30, i % 150 - 75, 0);
+    case 'WaveZ': return new THREE.Vector3(0, Math.sin(i * 0.1) * 30, i % 150 - 75);
+    case 'TorusRing': return new THREE.Vector3(Math.cos(i * 0.05) * 40, Math.sin(i * 0.05) * 40, Math.sin(i * 0.1) * 10);
+    case 'Star': return new THREE.Vector3((i % 2 == 0 ? 1.5 : 1) * Math.cos(i * 0.1) * 40, (i % 2 == 0 ? 1.5 : 1) * Math.sin(i * 0.1) * 40, 0);
+    default: return goldenSphere(i, numBoids);
+  }
+}
+
+function goldenSphere(i, n, radius = 60) {
   const phi = Math.acos(1 - 2 * (i + 0.5) / n);
   const theta = Math.PI * (1 + Math.sqrt(5)) * (i + 0.5);
   return new THREE.Vector3(
@@ -109,19 +130,6 @@ function goldenSpherePosition(i, n, radius = 60) {
     radius * Math.sin(phi) * Math.sin(theta),
     radius * Math.cos(phi)
   );
-}
-
-function generateShapePosition(i, shape) {
-  switch (shape) {
-    case 'Z':
-      return new THREE.Vector3(i % 30, Math.floor(i / 30) % 2 === 0 ? i % 30 : 30 - (i % 30), 0);
-    case 'A':
-      return new THREE.Vector3(Math.sin(i * 0.1) * 40, Math.cos(i * 0.1) * 40, 0);
-    case 'X':
-      return new THREE.Vector3((i % 2 === 0 ? 1 : -1) * (i % 15) * 2, (i % 2 === 0 ? 1 : -1) * (i % 15) * 2, 0);
-    default:
-      return goldenSpherePosition(i, numBoids);
-  }
 }
 
 function animate() {
@@ -141,9 +149,4 @@ function updateBoids() {
     boid.velocity.clampLength(0, 2);
     boid.position.add(boid.velocity);
   });
-}
-
-for (let code = 65; code <= 90; code++) {
-  const char = String.fromCharCode(code);
-  shapeMap[char] = true;
 }
