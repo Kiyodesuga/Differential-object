@@ -117,36 +117,30 @@ function changeToRandomShape() {
 
 function getShapePosition(i, shape, time) {
   const angle = i * 0.05;
-  const radius = 70;
+  let heartbeat = 1.0;
+  if (distortMode) {
+    heartbeat = 1.0 + 0.3 * Math.sin(time * 5 + i * 0.01);
+  }
+
   switch(shape) {
     case "Sphere":
       const phi = Math.acos(1 - 2 * (i + 0.5) / numParticles);
       const theta = Math.PI * (1 + Math.sqrt(5)) * (i + 0.5);
       return new THREE.Vector3(
-        radius * Math.sin(phi) * Math.cos(theta),
-        radius * Math.sin(phi) * Math.sin(theta),
-        radius * Math.cos(phi)
+        heartbeat * 70 * Math.sin(phi) * Math.cos(theta),
+        heartbeat * 70 * Math.sin(phi) * Math.sin(theta),
+        heartbeat * 70 * Math.cos(phi)
       );
     case "Spiral":
-      return new THREE.Vector3(Math.cos(angle) * i * 0.3, Math.sin(angle) * i * 0.3, i * 0.2 - 50);
+      return new THREE.Vector3(Math.cos(angle) * i * 0.3 * heartbeat, Math.sin(angle) * i * 0.3 * heartbeat, i * 0.2 - 50);
     case "Torus":
-      return new THREE.Vector3(Math.cos(angle) * 40, Math.sin(angle) * 40, Math.sin(angle * 2) * 10);
+      return new THREE.Vector3(Math.cos(angle) * 40 * heartbeat, Math.sin(angle) * 40 * heartbeat, Math.sin(angle * 2) * 10 * heartbeat);
     case "Grid":
-      return new THREE.Vector3((i % 30 - 15) * 5, Math.floor(i / 30) * 5 - 50, 0);
+      return new THREE.Vector3((i % 30 - 15) * 5 * heartbeat, Math.floor(i / 30) * 5 * heartbeat - 50, 0);
     case "Helix":
-      return new THREE.Vector3(Math.sin(angle * 2) * 30, i * 0.3 - 40, Math.cos(angle * 2) * 30);
-    case "StarBurst":
-      return new THREE.Vector3(Math.sin(i) * 60, Math.cos(i * 2) * 60, Math.sin(i * 3) * 30);
-    case "ArcLine":
-      return new THREE.Vector3(Math.sin(angle) * 60, Math.cos(angle) * 20, 0);
-    case "DropTail":
-      return new THREE.Vector3(0, -i * 0.3, Math.sin(i * 0.5) * 30);
-    case "CrystalCluster":
-      return new THREE.Vector3(Math.random() * 80 - 40, Math.random() * 80 - 40, Math.random() * 80 - 40);
-    case "TwistTower":
-      return new THREE.Vector3(Math.cos(angle) * 30, i * 0.4 - 50, Math.sin(angle) * 30);
+      return new THREE.Vector3(Math.sin(angle * 2) * 30 * heartbeat, i * 0.3 - 40, Math.cos(angle * 2) * 30 * heartbeat);
     default:
-      return new THREE.Vector3(Math.cos(angle) * 50, Math.sin(angle) * 50, Math.sin(i * 0.1) * 20);
+      return new THREE.Vector3(Math.cos(angle) * 50 * heartbeat, Math.sin(angle) * 50 * heartbeat, Math.sin(i * 0.1) * 20 * heartbeat);
   }
 }
 
