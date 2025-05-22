@@ -4,7 +4,11 @@ let scene, camera, renderer;
 const boids = [];
 const numBoids = 1500;
 let activeShape = 'O';
+let prevShape = 'O';
 let clock = new THREE.Clock();
+let toggleState = false;
+let shapeMap = {};
+const colors = [0xff5733, 0xffbd33, 0xdfff33, 0x75ff33, 0x33ff57, 0x33ffbd, 0x33dfff, 0x3375ff, 0x5733ff, 0xbd33ff, 0xff33df, 0xff3375, 0xff3333, 0x33ffaa, 0x3388ff, 0x8833ff, 0xff8833, 0x33ff88, 0xaa33ff, 0x33aaff];
 
 init();
 animate();
@@ -24,15 +28,13 @@ function init() {
   scene.add(new THREE.AmbientLight(0x222222));
 
   for (let i = 0; i < numBoids; i++) {
-    const geo = new THREE.SphereGeometry(0.15, 6, 6);
-    const mat = new THREE.MeshStandardMaterial({ 
-      color: 0x88ccff, 
-      emissive: 0x4488ff, 
-      emissiveIntensity: 1.2,
-      metalness: 0.2,
-      roughness: 0.4,
+    const geo = new THREE.SphereGeometry(0.4, 8, 8);
+    const mat = new THREE.MeshStandardMaterial({
+      color: colors[i % colors.length],
+      emissive: colors[i % colors.length],
+      emissiveIntensity: 1.0,
       transparent: true,
-      opacity: 0.7
+      opacity: 0.75
     });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.set(
@@ -50,12 +52,37 @@ function init() {
   }
 
   window.addEventListener('resize', onResize);
+  window.addEventListener('keydown', onKeyDown);
+  window.addEventListener('click', onClick);
 }
 
 function onResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function onClick() {
+  if (activeShape === 'O') {
+    const keys = Object.keys(shapeMap);
+    const randKey = keys[Math.floor(Math.random() * keys.length)];
+    prevShape = 'O';
+    activeShape = randKey;
+  } else {
+    activeShape = 'O';
+  }
+}
+
+function onKeyDown(e) {
+  const key = e.key.toUpperCase();
+  if (key >= 'A' && key <= 'Z') {
+    if (activeShape === key) {
+      activeShape = 'O';
+    } else {
+      prevShape = activeShape;
+      activeShape = key;
+    }
+  }
 }
 
 function goldenSpherePosition(i, n, radius = 60) {
@@ -68,6 +95,19 @@ function goldenSpherePosition(i, n, radius = 60) {
   );
 }
 
+function generateShapePosition(i, shape) {
+  switch (shape) {
+    case 'Z':
+      return new THREE.Vector3(i % 30, Math.floor(i / 30) % 2 === 0 ? i % 30 : 30 - (i % 30), 0);
+    case 'A':
+      return new THREE.Vector3(Math.sin(i * 0.1) * 40, Math.cos(i * 0.1) * 40, 0);
+    case 'X':
+      return new THREE.Vector3((i % 2 === 0 ? 1 : -1) * (i % 15) * 2, (i % 2 === 0 ? 1 : -1) * (i % 15) * 2, 0);
+    default:
+      return goldenSpherePosition(i, numBoids);
+  }
+}
+
 function animate() {
   requestAnimationFrame(animate);
   updateBoids();
@@ -75,21 +115,20 @@ function animate() {
 }
 
 function updateBoids() {
-  const time = clock.getElapsedTime();
-
   boids.forEach((boid, i) => {
     const force = new THREE.Vector3();
+    const target = generateShapePosition(i, activeShape);
+    force.add(target.sub(boid.position).multiplyScalar(0.05));
 
-    if (activeShape === 'O') {
-      const target = goldenSpherePosition(i, numBoids);
-      const toTarget = target.sub(boid.position).multiplyScalar(0.05);
-      force.add(toTarget);
-    }
-
-    // 摩擦減衰
-    boid.velocity.multiplyScalar(0.95);
+    boid.velocity.multiplyScalar(0.9);
     boid.velocity.add(force);
     boid.velocity.clampLength(0, 2);
     boid.position.add(boid.velocity);
   });
+}
+
+// 初期にA〜Zの仮形状を全てmap登録
+for (let code = 65; code <= 90; code++) {
+  const char = String.fromCharCode(code);
+  shapeMap[char] = true;
 }
