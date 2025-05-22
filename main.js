@@ -2,18 +2,42 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 let scene, camera, renderer;
-const numParticles = 1500;
-const particles = [];
+const boids = [];
+const numBoids = 1500;
 let activeShape = 'A';
+let prevShape = 'A';
 let clock = new THREE.Clock();
+let shapeMap = {};
 
-const shapeMap = {
-  A: 'Splash', B: 'StormSpiral', C: 'FireCrack', D: 'PulseWave', E: 'MagneticPull',
-  F: 'CrystalBloom', G: 'RainField', H: 'SmokeRise', I: 'EnergyCore', J: 'ExplosionRing',
-  K: 'RippleMirror', L: 'ElectricArc', M: 'FloatChaos', N: 'LightBurst', O: 'CoreGravity',
-  P: 'SandTwist', Q: 'PlasmaVibe', R: 'SonicWave', S: 'MeteorCrack', T: 'BloomFade',
-  U: 'ShadowPulse', V: 'EchoSpikes', W: 'FireTrail', X: 'VortexDrop', Y: 'AuroraDance', Z: 'MagneticDisperse'
+const azShapes = {
+  A: 'Sphere',
+  B: 'WaveX',
+  C: 'WaveZ',
+  D: 'LetterLine',
+  E: 'Helix',
+  F: 'BridgeArc',
+  G: 'UShape',
+  H: 'GridCross',
+  I: 'XShape',
+  J: 'TShape',
+  K: 'YBranch',
+  L: 'WaveY',
+  M: 'Staircase',
+  N: 'SnakeZig',
+  O: 'CubeGrid',
+  P: 'Star',
+  Q: 'LShape',
+  R: 'RandomCloud',
+  S: 'ZigzagWall',
+  T: 'FlatRing',
+  U: 'TorusRing',
+  V: 'ConeSpiral',
+  W: 'VShape',
+  X: 'Spiral',
+  Y: 'CylinderWall',
+  Z: 'PyramidStack'
 };
+
 
 const colors = [
   0xff5733, 0xffbd33, 0xdfff33, 0x75ff33, 0x33ff57,
@@ -40,117 +64,117 @@ function init() {
   scene.add(light);
   scene.add(new THREE.AmbientLight(0x222222));
 
-  for (let i = 0; i < numParticles; i++) {
-    const geometry = new THREE.SphereGeometry(0.3, 8, 8);
-    const material = new THREE.MeshStandardMaterial({
+  for (let i = 0; i < numBoids; i++) {
+    const geo = new THREE.SphereGeometry(0.4, 8, 8);
+    const mat = new THREE.MeshStandardMaterial({
       color: currentColor,
       emissive: currentColor,
       emissiveIntensity: 1.0,
       transparent: true,
-      opacity: 0.8
+      opacity: 0.75
     });
-    const particle = new THREE.Mesh(geometry, material);
-    particle.position.set((Math.random() - 0.5) * 300, (Math.random() - 0.5) * 300, (Math.random() - 0.5) * 300);
-    particle.velocity = new THREE.Vector3(
-      (Math.random() - 0.5) * 2,
-      (Math.random() - 0.5) * 2,
-      (Math.random() - 0.5) * 2
-    );
-    particles.push(particle);
-    scene.add(particle);
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set((Math.random() - 0.5) * 300, (Math.random() - 0.5) * 300, (Math.random() - 0.5) * 300);
+    mesh.velocity = new THREE.Vector3((Math.random() - 0.5), (Math.random() - 0.5), (Math.random() - 0.5));
+    boids.push(mesh);
+    scene.add(mesh);
   }
 
-  window.addEventListener('keydown', (e) => {
-    const key = e.key.toUpperCase();
-    if (shapeMap[key]) {
-      activeShape = key;
-      currentColor = colors[Math.floor(Math.random() * colors.length)];
-      particles.forEach(p => {
-        p.material.color.set(currentColor);
-        p.material.emissive.set(currentColor);
-      });
-    }
-  });
+  window.addEventListener('resize', onResize);
+  window.addEventListener('keydown', onKeyDown);
+  window.addEventListener('click', onClick);
 
-  
-  window.addEventListener('click', () => {
-    const keys = Object.keys(shapeMap).filter(k => k !== activeShape);
-    activeShape = keys[Math.floor(Math.random() * keys.length)];
-    currentColor = colors[Math.floor(Math.random() * colors.length)];
-    particles.forEach(p => {
-      p.material.color.set(currentColor);
-      p.material.emissive.set(currentColor);
-    });
-  });
+  for (let code = 65; code <= 90; code++) {
+    const char = String.fromCharCode(code);
+    shapeMap[char] = true;
+  }
+}
 
-  window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+function onResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function onClick() {
+  const keys = Object.keys(shapeMap).filter(k => k !== 'A');
+  let nextShape = activeShape;
+  while (nextShape === activeShape) {
+    nextShape = keys[Math.floor(Math.random() * keys.length)];
+  }
+  activeShape = nextShape;
+  changeColor();
+}
+
+function onKeyDown(e) {
+  const key = e.key.toUpperCase();
+  if (key >= 'A' && key <= 'Z') {
+    activeShape = key;
+    changeColor();
+  }
+}
+
+function changeColor() {
+  currentColor = colors[Math.floor(Math.random() * colors.length)];
+  boids.forEach(b => {
+    b.material.color.set(currentColor);
+    b.material.emissive.set(currentColor);
   });
 }
 
-function getCoreTarget(i, shape) {
-  const r = 60;
-  const phi = Math.acos(1 - 2 * (i + 0.5) / numParticles);
+function generateShapePosition(i, shape) {
+  const s = azShapes[shape];
+  switch (s) {
+    case 'Sphere': return goldenSphere(i, numBoids);
+    case 'CubeGrid': return new THREE.Vector3((i % 10) * 6 - 30, (Math.floor(i / 10) % 10) * 6 - 30, Math.floor(i / 100) * 6 - 30);
+    case 'PyramidStack': return new THREE.Vector3((i % 10 - 5) * 6, (Math.floor(i / 10) - 7) * 6, -Math.abs(i % 10 - 5) * 3);
+    case 'Spiral': return new THREE.Vector3(i * 0.3 * Math.cos(i * 0.1), i * 0.3 * Math.sin(i * 0.1), i * 0.1 % 60 - 30);
+    case 'TorusRing': return new THREE.Vector3(Math.cos(i * 0.05) * 40, Math.sin(i * 0.05) * 40, Math.sin(i * 0.1) * 10);
+    case 'WaveX': return new THREE.Vector3(i % 150 - 75, Math.sin(i * 0.1) * 30, 0);
+    case 'WaveY': return new THREE.Vector3(Math.sin(i * 0.1) * 30, i % 150 - 75, 0);
+    case 'WaveZ': return new THREE.Vector3(0, Math.sin(i * 0.1) * 30, i % 150 - 75);
+    case 'CirclePlane': return new THREE.Vector3(Math.cos(i) * 60, Math.sin(i) * 60, 0);
+    case 'CylinderWall': return new THREE.Vector3(Math.cos(i * 0.1) * 40, (i % 20 - 10) * 3, Math.sin(i * 0.1) * 40);
+    case 'Helix': return new THREE.Vector3(Math.cos(i * 0.1) * 30, Math.sin(i * 0.1) * 30, (i % 100 - 50) * 0.6);
+    case 'RandomCloud': return new THREE.Vector3((Math.random() - 0.5) * 80, (Math.random() - 0.5) * 80, (Math.random() - 0.5) * 80);
+    case 'Star': return new THREE.Vector3((i % 2 == 0 ? 1.5 : 1) * Math.cos(i * 0.1) * 40, (i % 2 == 0 ? 1.5 : 1) * Math.sin(i * 0.1) * 40, 0);
+    case 'BridgeArc': return new THREE.Vector3((i % 50) - 25, Math.sin(i * 0.15) * 20, 0);
+    case 'SnakeZig': return new THREE.Vector3((i % 2 === 0 ? 1 : -1) * (i % 20), (i % 100 - 50), Math.sin(i * 0.2) * 15);
+    case 'TwinRing': return new THREE.Vector3(Math.cos(i * 0.1) * 30, Math.sin(i * 0.1) * 30, (i % 2 === 0 ? 20 : -20));
+    case 'BoxStairs': return new THREE.Vector3((i % 20) * 3 - 30, Math.floor(i / 20) * 3, 0);
+    case 'FanSpread': return new THREE.Vector3(i * 0.2, Math.tan(i * 0.05) * 20, 0);
+    case 'OffsetGrid': return new THREE.Vector3((i % 10) * 6 - 30, (Math.floor(i / 10) % 10) * 6 - 30 + (i % 2) * 3, Math.floor(i / 100) * 6 - 30);
+    case 'TwistHelix': return new THREE.Vector3(Math.cos(i * 0.1) * 30, Math.sin(i * 0.1) * 30, Math.sin(i * 0.05) * 30);
+    case 'WallRamp': return new THREE.Vector3((i % 30) - 15, (i % 30) - 15, 0);
+    default: return goldenSphere(i, numBoids);
+  }
+}
+
+function goldenSphere(i, n, radius = 60) {
+  const phi = Math.acos(1 - 2 * (i + 0.5) / n);
   const theta = Math.PI * (1 + Math.sqrt(5)) * (i + 0.5);
   return new THREE.Vector3(
-    r * Math.sin(phi) * Math.cos(theta),
-    r * Math.sin(phi) * Math.sin(theta),
-    r * Math.cos(phi)
+    radius * Math.sin(phi) * Math.cos(theta),
+    radius * Math.sin(phi) * Math.sin(theta),
+    radius * Math.cos(phi)
   );
-}
-
-function getFieldForce(pos, shape, time, i) {
-  const dist = pos.length();
-  const dir = pos.clone().normalize();
-  let f = new THREE.Vector3();
-
-  switch (shape) {
-    case 'Splash':
-      f = dir.multiplyScalar(Math.sin(time * 4 + i * 0.1) * 0.5); break;
-    case 'StormSpiral':
-      f = new THREE.Vector3(
-        Math.sin(i * 0.1 + time) * 1.5,
-        Math.cos(i * 0.1 + time) * 1.5,
-        Math.sin(time + i * 0.03) * 2
-      ); break;
-    case 'PulseWave':
-      f = dir.multiplyScalar(Math.sin(dist * 0.1 - time * 4) * 1.5); break;
-    case 'FireCrack':
-      f = new THREE.Vector3(
-        (Math.random() - 0.5) * 8,
-        (Math.random() - 0.5) * 8,
-        (Math.random() - 0.5) * 8
-      ).multiplyScalar(0.2); break;
-    case 'MagneticPull':
-      f = dir.negate().multiplyScalar(0.3); break;
-    case 'CrystalBloom':
-      f = new THREE.Vector3(
-        Math.sin(i * 0.5 + time) * 0.4,
-        Math.cos(i * 0.5 + time) * 0.4,
-        Math.sin(i * 0.3 + time) * 0.4
-      ); break;
-    default:
-      f = new THREE.Vector3(0, 0, 0); break;
-  }
-  return f;
 }
 
 function animate() {
   requestAnimationFrame(animate);
-  updateParticles();
+  updateBoids();
   renderer.render(scene, camera);
 }
 
-function updateParticles() {
-  const time = clock.getElapsedTime();
-  particles.forEach((p, i) => {
-    const coreTarget = getCoreTarget(i, activeShape);
-    const toCore = coreTarget.clone().sub(p.position).multiplyScalar(0.02);
-    const fieldEffect = getFieldForce(p.position, shapeMap[activeShape], time, i);
-    p.velocity.add(toCore).add(fieldEffect);
-    p.velocity.multiplyScalar(0.92);
-    p.position.add(p.velocity);
+function updateBoids() {
+  boids.forEach((boid, i) => {
+    const force = new THREE.Vector3();
+    const target = generateShapePosition(i, activeShape);
+    force.add(target.sub(boid.position).multiplyScalar(0.05));
+
+    boid.velocity.multiplyScalar(0.9);
+    boid.velocity.add(force);
+    boid.velocity.clampLength(0, 2);
+    boid.position.add(boid.velocity);
   });
 }
