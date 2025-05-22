@@ -63,7 +63,7 @@ function onKeyDown(event) {
   if (event.key === ' ') {
     stage = (stage + 1) % 3;
     if (stage === 1) {
-      targetCenter.set(0, 0, 0);  // 固まりの中心
+      targetCenter.set(0, 0, 0);
     }
   }
 }
