@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Boids Dynamic Deformable</title>
+  <title>Boids Deform Interaction</title>
   <style>
     body { margin: 0; overflow: hidden; background: black; font-family: sans-serif; }
     canvas { display: block; }
@@ -14,18 +14,24 @@
       z-index: 10;
     }
     #distortModeBtn {
-      background: #222;
+      background: #111;
       color: white;
-      padding: 8px 14px;
-      border: 1px solid #666;
-      border-radius: 6px;
+      font-size: 20px;
+      padding: 8px 12px;
+      border: 2px solid #666;
+      border-radius: 8px;
       cursor: pointer;
+      transition: box-shadow 0.3s;
+    }
+    #distortModeBtn.active {
+      box-shadow: 0 0 10px 2px #0ff;
+      border-color: #0ff;
     }
   </style>
 </head>
 <body>
   <div id="ui">
-    <button id="distortModeBtn">🔧 変形モード OFF</button>
+    <button id="distortModeBtn">🔧</button>
   </div>
   <script type="module" src="main.js"></script>
 </body>
