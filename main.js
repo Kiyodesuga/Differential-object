@@ -4,37 +4,38 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 let scene, camera, renderer;
 const boids = [];
 const numBoids = 1500;
-let activeShape = 'O';
-let prevShape = 'O';
+let activeShape = 'A';
+let prevShape = 'A';
 let clock = new THREE.Clock();
 let shapeMap = {};
+
 const azShapes = {
-  A: 'TShape',
-  B: 'LetterLine',
-  C: 'CylinderWall',
-  D: 'FlatRing',
-  E: 'GridCross',
-  F: 'ConeSpiral',
+  A: 'Sphere',
+  B: 'WaveX',
+  C: 'WaveZ',
+  D: 'LetterLine',
+  E: 'Helix',
+  F: 'CirclePlane',
   G: 'UShape',
-  H: 'Helix',
-  I: 'PyramidStack',
-  J: 'Shell',
-  K: 'VShape',
-  L: 'Star',
-  M: 'YBranch',
-  N: 'Staircase',
-  O: 'Sphere',
-  P: 'ZigzagWall',
-  Q: 'RandomCloud',
-  R: 'XShape',
-  S: 'TorusRing',
-  T: 'CirclePlane',
-  U: 'Spiral',
-  V: 'WaveY',
-  W: 'WaveZ',
-  X: 'LShape',
-  Y: 'CubeGrid',
-  Z: 'WaveX'
+  H: 'GridCross',
+  I: 'XShape',
+  J: 'TShape',
+  K: 'YBranch',
+  L: 'WaveY',
+  M: 'Staircase',
+  N: 'Shell',
+  O: 'CubeGrid',
+  P: 'Star',
+  Q: 'LShape',
+  R: 'RandomCloud',
+  S: 'ZigzagWall',
+  T: 'FlatRing',
+  U: 'TorusRing',
+  V: 'ConeSpiral',
+  W: 'VShape',
+  X: 'Spiral',
+  Y: 'CylinderWall',
+  Z: 'PyramidStack'
 };
 
 const colors = [
@@ -50,7 +51,7 @@ animate();
 
 function init() {
   scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
   camera.position.z = 150;
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -95,12 +96,11 @@ function onResize() {
 }
 
 function onClick() {
-  let keys = Object.keys(shapeMap);
+  const keys = Object.keys(shapeMap).filter(k => k !== 'A');
   let nextShape = activeShape;
   while (nextShape === activeShape) {
     nextShape = keys[Math.floor(Math.random() * keys.length)];
   }
-  prevShape = activeShape;
   activeShape = nextShape;
   changeColor();
 }
@@ -108,12 +108,7 @@ function onClick() {
 function onKeyDown(e) {
   const key = e.key.toUpperCase();
   if (key >= 'A' && key <= 'Z') {
-    if (activeShape === key) {
-      const keys = Object.keys(shapeMap).filter(k => k !== activeShape);
-      activeShape = keys[Math.floor(Math.random() * keys.length)];
-    } else {
-      activeShape = key;
-    }
+    activeShape = key;
     changeColor();
   }
 }
@@ -130,14 +125,17 @@ function generateShapePosition(i, shape) {
   const s = azShapes[shape];
   switch (s) {
     case 'Sphere': return goldenSphere(i, numBoids);
-    case 'CirclePlane': return new THREE.Vector3(Math.cos(i) * 60, Math.sin(i) * 60, 0);
-    case 'FlatRing': return new THREE.Vector3(Math.cos(i * 0.05) * 60, 0, Math.sin(i * 0.05) * 60);
-    case 'Spiral': return new THREE.Vector3(i * 0.3 * Math.cos(i * 0.1), i * 0.3 * Math.sin(i * 0.1), i * 0.1 % 60 - 30);
     case 'CubeGrid': return new THREE.Vector3((i % 10) * 6 - 30, (Math.floor(i / 10) % 10) * 6 - 30, Math.floor(i / 100) * 6 - 30);
+    case 'PyramidStack': return new THREE.Vector3((i % 10 - 5) * 6, (Math.floor(i / 10) - 7) * 6, -Math.abs(i % 10 - 5) * 3);
+    case 'Spiral': return new THREE.Vector3(i * 0.3 * Math.cos(i * 0.1), i * 0.3 * Math.sin(i * 0.1), i * 0.1 % 60 - 30);
+    case 'TorusRing': return new THREE.Vector3(Math.cos(i * 0.05) * 40, Math.sin(i * 0.05) * 40, Math.sin(i * 0.1) * 10);
     case 'WaveX': return new THREE.Vector3(i % 150 - 75, Math.sin(i * 0.1) * 30, 0);
     case 'WaveY': return new THREE.Vector3(Math.sin(i * 0.1) * 30, i % 150 - 75, 0);
     case 'WaveZ': return new THREE.Vector3(0, Math.sin(i * 0.1) * 30, i % 150 - 75);
-    case 'TorusRing': return new THREE.Vector3(Math.cos(i * 0.05) * 40, Math.sin(i * 0.05) * 40, Math.sin(i * 0.1) * 10);
+    case 'CirclePlane': return new THREE.Vector3(Math.cos(i) * 60, Math.sin(i) * 60, 0);
+    case 'CylinderWall': return new THREE.Vector3(Math.cos(i * 0.1) * 40, (i % 20 - 10) * 3, Math.sin(i * 0.1) * 40);
+    case 'Helix': return new THREE.Vector3(Math.cos(i * 0.1) * 30, Math.sin(i * 0.1) * 30, (i % 100 - 50) * 0.6);
+    case 'RandomCloud': return new THREE.Vector3((Math.random() - 0.5) * 80, (Math.random() - 0.5) * 80, (Math.random() - 0.5) * 80);
     case 'Star': return new THREE.Vector3((i % 2 == 0 ? 1.5 : 1) * Math.cos(i * 0.1) * 40, (i % 2 == 0 ? 1.5 : 1) * Math.sin(i * 0.1) * 40, 0);
     default: return goldenSphere(i, numBoids);
   }
