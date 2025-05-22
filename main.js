@@ -4,7 +4,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 let scene, camera, renderer, clock;
 let particles = [], dragging = false, selected = null, raycaster, mouse;
 const numParticles = 2250;
-let activeShape = 'A';
+let activeShape = 'A';  // 初期状態：球体
 let distortMode = false;
 let currentColor;
 
@@ -67,7 +67,7 @@ function init() {
   window.addEventListener('pointerdown', onPointerDown);
   window.addEventListener('pointermove', onPointerMove);
   window.addEventListener('pointerup', () => { dragging = false; selected = null; });
-  window.addEventListener('click', () => { if (!distortMode) changeToRandomShape(); });
+  window.addEventListener('click', () => { changeToRandomShape(); });
   window.addEventListener('keydown', onKeyDown);
 }
 
