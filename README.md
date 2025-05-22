@@ -1,10 +1,8 @@
 
-# Particle Object Viewer (A-Z)
+# Spherical Particle Simulation
 
-This project shows different 3D objects assigned to A-Z keys with floating particles in the background.
-
-## Features
-
-- A-Z keys trigger unique 3D shapes
-- Left click switches between sphere <-> random object
-- Floating particles move continuously even when objects are still
+## 特徴
+- 最初に粒子が球状に分布
+- 常に細かく揺れ続けるパーティクル
+- A〜Zキーで異なる3Dオブジェクト表示
+- 左クリックで球体⇄ランダムオブジェクト切り替え

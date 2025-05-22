@@ -12,8 +12,8 @@ const keys = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
 let particles, particlePositions, particleVelocities;
 
-const PARTICLE_COUNT = 500;
-const PARTICLE_RANGE = 60;
+const PARTICLE_COUNT = 3000;
+const SPHERE_RADIUS = 30;
 
 function initParticles() {
     const geometry = new THREE.BufferGeometry();
@@ -22,18 +22,23 @@ function initParticles() {
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
         const i3 = i * 3;
-        particlePositions[i3] = (Math.random() - 0.5) * PARTICLE_RANGE;
-        particlePositions[i3 + 1] = (Math.random() - 0.5) * PARTICLE_RANGE;
-        particlePositions[i3 + 2] = (Math.random() - 0.5) * PARTICLE_RANGE;
 
-        particleVelocities[i3] = (Math.random() - 0.5) * 0.1;
-        particleVelocities[i3 + 1] = (Math.random() - 0.5) * 0.1;
-        particleVelocities[i3 + 2] = (Math.random() - 0.5) * 0.1;
+        // 球面分布（均等分布）
+        const r = Math.random() * SPHERE_RADIUS;
+        const theta = Math.random() * 2 * Math.PI;
+        const phi = Math.acos(2 * Math.random() - 1);
+
+        particlePositions[i3] = r * Math.sin(phi) * Math.cos(theta);
+        particlePositions[i3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+        particlePositions[i3 + 2] = r * Math.cos(phi);
+
+        particleVelocities[i3] = (Math.random() - 0.5) * 0.02;
+        particleVelocities[i3 + 1] = (Math.random() - 0.5) * 0.02;
+        particleVelocities[i3 + 2] = (Math.random() - 0.5) * 0.02;
     }
 
     geometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
-
-    const material = new THREE.PointsMaterial({ color: 0xffffff, size: 1.5 });
+    const material = new THREE.PointsMaterial({ color: 0xffffff, size: 0.4 });
     particles = new THREE.Points(geometry, material);
     scene.add(particles);
 }
@@ -43,7 +48,7 @@ function updateParticles() {
         const i3 = i * 3;
         for (let j = 0; j < 3; j++) {
             particlePositions[i3 + j] += particleVelocities[i3 + j];
-            if (Math.abs(particlePositions[i3 + j]) > PARTICLE_RANGE / 2) {
+            if (Math.abs(particlePositions[i3 + j]) > SPHERE_RADIUS) {
                 particleVelocities[i3 + j] *= -1;
             }
         }
