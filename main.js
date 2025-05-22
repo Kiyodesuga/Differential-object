@@ -17,9 +17,7 @@ const shapeMap = {
 
 const colorList = [
   0xff5733,0xffbd33,0xdfff33,0x75ff33,0x33ff57,0x33ffbd,0x33dfff,0x3375ff,0x5733ff,0xbd33ff,
-  0xff33df,0xff3375,0xff3333,0x33ffaa,0x3388ff,0x8833ff,0xff8833,0x33ff88,0xaa33ff,0x33aaff,
-  0x44ff44,0xff4444,0x44ffff,0xffff44,0x8877ff,0x9988aa,0xccff88,0x88ccff,0xdd99ff,0xff99dd,
-  0xffaa33,0xaaff33,0x33ffaa,0x33aaff,0xaa33ff,0xff33aa,0x33ff33,0x4444ff,0xff4444,0xffdd33
+  0xff33df,0xff3375,0xff3333,0x33ffaa,0x3388ff,0x8833ff,0xff8833,0x33ff88,0xaa33ff,0x33aaff
 ];
 
 init();
@@ -118,24 +116,45 @@ function changeToRandomShape() {
 }
 
 function getShapePosition(i, shape, time) {
+  const angle = i * 0.05;
   const radius = 70;
-  const phi = Math.acos(1 - 2 * (i + 0.5) / numParticles);
-  const theta = Math.PI * (1 + Math.sqrt(5)) * (i + 0.5);
-  let offset = 1.0;
-  if (distortMode) {
-    offset = 1.0 + 0.2 * Math.sin(time * 3 + i * 0.01);
+  switch(shape) {
+    case "Sphere":
+      const phi = Math.acos(1 - 2 * (i + 0.5) / numParticles);
+      const theta = Math.PI * (1 + Math.sqrt(5)) * (i + 0.5);
+      return new THREE.Vector3(
+        radius * Math.sin(phi) * Math.cos(theta),
+        radius * Math.sin(phi) * Math.sin(theta),
+        radius * Math.cos(phi)
+      );
+    case "Spiral":
+      return new THREE.Vector3(Math.cos(angle) * i * 0.3, Math.sin(angle) * i * 0.3, i * 0.2 - 50);
+    case "Torus":
+      return new THREE.Vector3(Math.cos(angle) * 40, Math.sin(angle) * 40, Math.sin(angle * 2) * 10);
+    case "Grid":
+      return new THREE.Vector3((i % 30 - 15) * 5, Math.floor(i / 30) * 5 - 50, 0);
+    case "Helix":
+      return new THREE.Vector3(Math.sin(angle * 2) * 30, i * 0.3 - 40, Math.cos(angle * 2) * 30);
+    case "StarBurst":
+      return new THREE.Vector3(Math.sin(i) * 60, Math.cos(i * 2) * 60, Math.sin(i * 3) * 30);
+    case "ArcLine":
+      return new THREE.Vector3(Math.sin(angle) * 60, Math.cos(angle) * 20, 0);
+    case "DropTail":
+      return new THREE.Vector3(0, -i * 0.3, Math.sin(i * 0.5) * 30);
+    case "CrystalCluster":
+      return new THREE.Vector3(Math.random() * 80 - 40, Math.random() * 80 - 40, Math.random() * 80 - 40);
+    case "TwistTower":
+      return new THREE.Vector3(Math.cos(angle) * 30, i * 0.4 - 50, Math.sin(angle) * 30);
+    default:
+      return new THREE.Vector3(Math.cos(angle) * 50, Math.sin(angle) * 50, Math.sin(i * 0.1) * 20);
   }
-  return new THREE.Vector3(
-    radius * Math.sin(phi) * Math.cos(theta) * offset,
-    radius * Math.sin(phi) * Math.sin(theta) * offset,
-    radius * Math.cos(phi) * offset
-  );
 }
 
 function updateStructure(time) {
   for (let i = 0; i < particles.length; i++) {
     if (particles[i] !== selected) {
-      const target = getShapePosition(i, shapeMap[activeShape], time);
+      const shapeName = shapeMap[activeShape];
+      const target = getShapePosition(i, shapeName, time);
       particles[i].position.lerp(target, 0.1);
     }
   }
