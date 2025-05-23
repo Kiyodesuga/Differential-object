@@ -7,8 +7,9 @@ let positions, velocities, targetPositions;
 let objects = [];
 let currentTarget = null;
 let particleColorIndex = 0;
+let waveTime = 0;
 
-const PARTICLE_COUNT = 10000;
+const PARTICLE_COUNT = 50000;
 const SPHERE_RADIUS = 40;
 const OBJECT_COUNT = 20;
 
@@ -39,6 +40,11 @@ function createObjects() {
         new THREE.SphereGeometry(8, 16, 16),
         new THREE.CylinderGeometry(5, 5, 15, 16)
     ];
+
+    // 追加：波のように揺れるPlaneジオメトリ
+    const wave = new THREE.PlaneGeometry(30, 30, 32, 32);
+    objects.push(wave);
+
     for (let i = 0; i < OBJECT_COUNT; i++) {
         const geom = geometries[i % geometries.length];
         geom.scale(0.8, 0.8, 0.8);
@@ -67,23 +73,42 @@ function initParticles() {
     }
 
     particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    particleMaterial = new THREE.PointsMaterial({ color: colors[0], size: 0.3 });
+    particleMaterial = new THREE.PointsMaterial({ color: colors[0], size: 0.2 });
     particles = new THREE.Points(particleGeometry, particleMaterial);
     scene.add(particles);
 }
 
 function switchToObject(index) {
     const geom = objects[index];
+    if (index === 0) {
+        // 波のように動くPlane
+        waveTime = 0;
+    }
     geom.computeBoundingBox();
     const source = geom.attributes.position.array;
     for (let i = 0; i < PARTICLE_COUNT * 3; i++) {
         const j = i % source.length;
         targetPositions[i] = source[j];
     }
-    particleMaterial.color = colors[index];
+    particleMaterial.color = colors[index % colors.length];
 }
 
 function updateParticles() {
+    if (particleColorIndex === 0) {
+        // 波エフェクト
+        const waveGeom = objects[0];
+        const source = waveGeom.attributes.position.array;
+        const updated = source.slice();
+        waveTime += 0.02;
+        for (let i = 0; i < source.length; i += 3) {
+            updated[i + 2] = Math.sin(updated[i] * 0.3 + waveTime) * 2;
+        }
+        for (let i = 0; i < PARTICLE_COUNT * 3; i++) {
+            const j = i % updated.length;
+            targetPositions[i] = updated[j];
+        }
+    }
+
     const pos = particleGeometry.attributes.position.array;
     for (let i = 0; i < PARTICLE_COUNT * 3; i++) {
         const diff = targetPositions[i] - pos[i];
@@ -112,7 +137,7 @@ function init() {
     animate();
 
     document.addEventListener('click', () => {
-        particleColorIndex = (particleColorIndex + 1) % OBJECT_COUNT;
+        particleColorIndex = (particleColorIndex + 1) % objects.length;
         switchToObject(particleColorIndex);
     });
 }
