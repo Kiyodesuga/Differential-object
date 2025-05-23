@@ -12,8 +12,8 @@ let dragOffset = new THREE.Vector3();
 let targetMesh;
 let delayTime = 0;
 
-const PARTICLE_COUNT = 50000;
-const SPHERE_RADIUS = 40;
+const PARTICLE_COUNT = 150000;
+const SPHERE_RADIUS = 120;
 const OBJECT_COUNT = 20;
 const DELAY_MS = 300;
 
@@ -23,21 +23,21 @@ const colors = Array.from({ length: OBJECT_COUNT }, (_, i) =>
 
 function createObjects() {
     const geometries = [
-        new THREE.BoxGeometry(15, 15, 15),
-        new THREE.SphereGeometry(12, 32, 32),
-        new THREE.ConeGeometry(10, 20, 32),
-        new THREE.CylinderGeometry(10, 10, 20, 32),
-        new THREE.TorusGeometry(8, 2, 16, 100),
-        new THREE.DodecahedronGeometry(10),
-        new THREE.TetrahedronGeometry(10),
-        new THREE.OctahedronGeometry(10),
-        new THREE.TorusKnotGeometry(10, 1, 100, 16),
-        new THREE.IcosahedronGeometry(10),
-        new THREE.PlaneGeometry(20, 20, 32, 32), // for wave
+        new THREE.BoxGeometry(80, 80, 80),
+        new THREE.SphereGeometry(60, 64, 64),
+        new THREE.ConeGeometry(60, 100, 64),
+        new THREE.CylinderGeometry(60, 60, 100, 64),
+        new THREE.TorusGeometry(50, 15, 32, 100),
+        new THREE.DodecahedronGeometry(70),
+        new THREE.TetrahedronGeometry(70),
+        new THREE.OctahedronGeometry(70),
+        new THREE.TorusKnotGeometry(50, 5, 200, 32),
+        new THREE.IcosahedronGeometry(70),
+        new THREE.PlaneGeometry(160, 160, 64, 64),
     ];
     for (let i = 0; i < OBJECT_COUNT; i++) {
         const geom = geometries[i % geometries.length].clone();
-        geom.scale(0.8, 0.8, 0.8);
+        geom.scale(1.5, 1.5, 1.5);
         objects.push(geom);
     }
 }
@@ -64,7 +64,7 @@ function initParticles() {
     }
 
     particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    particleMaterial = new THREE.PointsMaterial({ color: colors[0], size: 0.2 });
+    particleMaterial = new THREE.PointsMaterial({ color: colors[0], size: 0.15 });
     particles = new THREE.Points(particleGeometry, particleMaterial);
     scene.add(particles);
 }
@@ -108,8 +108,8 @@ function onMouseMove(event) {
     if (isDragging && targetMesh) {
         const x = (event.clientX / window.innerWidth) * 2 - 1;
         const y = -(event.clientY / window.innerHeight) * 2 + 1;
-        targetMesh.position.x = x * 50;
-        targetMesh.position.y = y * 50;
+        targetMesh.position.x = x * 100;
+        targetMesh.position.y = y * 100;
     }
 }
 
@@ -120,7 +120,7 @@ function onMouseUp() {
 function init() {
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.z = 100;
+    camera.position.z = 200;
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -128,7 +128,7 @@ function init() {
 
     const ambient = new THREE.AmbientLight(0xffffff, 0.5);
     const pointLight = new THREE.PointLight(0xffffff, 1);
-    pointLight.position.set(50, 50, 50);
+    pointLight.position.set(100, 100, 100);
     scene.add(ambient, pointLight);
 
     createObjects();
