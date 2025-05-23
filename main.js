@@ -3,15 +3,19 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
 let scene, camera, renderer;
 let particles, particleGeometry, particleMaterial;
-let positions, velocities, targetPositions;
+let positions, velocities, targetPositions, delayedTargetPositions;
 let objects = [];
-let currentTarget = null;
-let particleColorIndex = 0;
+let currentTargetIndex = 0;
 let waveTime = 0;
+let isDragging = false;
+let dragOffset = new THREE.Vector3();
+let targetMesh;
+let delayTime = 0;
 
 const PARTICLE_COUNT = 50000;
 const SPHERE_RADIUS = 40;
 const OBJECT_COUNT = 20;
+const DELAY_MS = 300;
 
 const colors = Array.from({ length: OBJECT_COUNT }, (_, i) =>
     new THREE.Color(`hsl(${(360 / OBJECT_COUNT) * i}, 100%, 60%)`)
@@ -29,24 +33,10 @@ function createObjects() {
         new THREE.OctahedronGeometry(10),
         new THREE.TorusKnotGeometry(10, 1, 100, 16),
         new THREE.IcosahedronGeometry(10),
-        new THREE.PlaneGeometry(20, 20),
-        new THREE.RingGeometry(5, 10, 32),
-        new THREE.CircleGeometry(10, 32),
-        new THREE.SphereGeometry(10, 12, 12),
-        new THREE.BoxGeometry(10, 30, 10),
-        new THREE.ConeGeometry(15, 10, 8),
-        new THREE.TorusKnotGeometry(5, 1.5, 50, 10),
-        new THREE.DodecahedronGeometry(7),
-        new THREE.SphereGeometry(8, 16, 16),
-        new THREE.CylinderGeometry(5, 5, 15, 16)
+        new THREE.PlaneGeometry(20, 20, 32, 32), // for wave
     ];
-
-    // 追加：波のように揺れるPlaneジオメトリ
-    const wave = new THREE.PlaneGeometry(30, 30, 32, 32);
-    objects.push(wave);
-
     for (let i = 0; i < OBJECT_COUNT; i++) {
-        const geom = geometries[i % geometries.length];
+        const geom = geometries[i % geometries.length].clone();
         geom.scale(0.8, 0.8, 0.8);
         objects.push(geom);
     }
@@ -57,6 +47,7 @@ function initParticles() {
     positions = new Float32Array(PARTICLE_COUNT * 3);
     velocities = new Float32Array(PARTICLE_COUNT * 3);
     targetPositions = new Float32Array(PARTICLE_COUNT * 3);
+    delayedTargetPositions = new Float32Array(PARTICLE_COUNT * 3);
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
         const i3 = i * 3;
@@ -80,41 +71,50 @@ function initParticles() {
 
 function switchToObject(index) {
     const geom = objects[index];
-    if (index === 0) {
-        // 波のように動くPlane
-        waveTime = 0;
-    }
-    geom.computeBoundingBox();
     const source = geom.attributes.position.array;
+    const len = source.length;
+
+    if (targetMesh) scene.remove(targetMesh);
+    const mat = new THREE.MeshBasicMaterial({ color: colors[index], wireframe: true });
+    targetMesh = new THREE.Mesh(geom, mat);
+    scene.add(targetMesh);
+
     for (let i = 0; i < PARTICLE_COUNT * 3; i++) {
-        const j = i % source.length;
+        const j = i % len;
         targetPositions[i] = source[j];
     }
-    particleMaterial.color = colors[index % colors.length];
+
+    setTimeout(() => {
+        for (let i = 0; i < PARTICLE_COUNT * 3; i++) {
+            delayedTargetPositions[i] = targetPositions[i];
+        }
+    }, DELAY_MS);
 }
 
 function updateParticles() {
-    if (particleColorIndex === 0) {
-        // 波エフェクト
-        const waveGeom = objects[0];
-        const source = waveGeom.attributes.position.array;
-        const updated = source.slice();
-        waveTime += 0.02;
-        for (let i = 0; i < source.length; i += 3) {
-            updated[i + 2] = Math.sin(updated[i] * 0.3 + waveTime) * 2;
-        }
-        for (let i = 0; i < PARTICLE_COUNT * 3; i++) {
-            const j = i % updated.length;
-            targetPositions[i] = updated[j];
-        }
-    }
-
     const pos = particleGeometry.attributes.position.array;
     for (let i = 0; i < PARTICLE_COUNT * 3; i++) {
-        const diff = targetPositions[i] - pos[i];
+        const diff = delayedTargetPositions[i] - pos[i];
         pos[i] += diff * 0.05 + velocities[i];
     }
     particleGeometry.attributes.position.needsUpdate = true;
+}
+
+function onMouseDown(event) {
+    isDragging = true;
+}
+
+function onMouseMove(event) {
+    if (isDragging && targetMesh) {
+        const x = (event.clientX / window.innerWidth) * 2 - 1;
+        const y = -(event.clientY / window.innerHeight) * 2 + 1;
+        targetMesh.position.x = x * 50;
+        targetMesh.position.y = y * 50;
+    }
+}
+
+function onMouseUp() {
+    isDragging = false;
 }
 
 function init() {
@@ -133,18 +133,26 @@ function init() {
 
     createObjects();
     initParticles();
-    switchToObject(0);
+    switchToObject(currentTargetIndex);
     animate();
 
     document.addEventListener('click', () => {
-        particleColorIndex = (particleColorIndex + 1) % objects.length;
-        switchToObject(particleColorIndex);
+        currentTargetIndex = (currentTargetIndex + 1) % objects.length;
+        switchToObject(currentTargetIndex);
     });
+
+    document.addEventListener('mousedown', onMouseDown);
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
 }
 
 function animate() {
     requestAnimationFrame(animate);
     updateParticles();
+    if (targetMesh) {
+        targetMesh.rotation.x += 0.002;
+        targetMesh.rotation.y += 0.002;
+    }
     renderer.render(scene, camera);
 }
 
